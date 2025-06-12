@@ -1,4 +1,4 @@
-Shader "Custom/P4_C4"
+Shader "Custom/P4/P4_C4"
 {
     Properties
     {
