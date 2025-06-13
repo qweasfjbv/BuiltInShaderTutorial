@@ -1,4 +1,4 @@
-Shader "Custom/P16_AlphaTesting"
+Shader "Custom/P16/P16_AlphaTesting"
 {
     Properties
     {

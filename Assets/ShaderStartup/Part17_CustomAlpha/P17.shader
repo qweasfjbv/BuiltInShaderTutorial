@@ -1,4 +1,4 @@
-Shader "Custom/P16/P16_AlphaBlending"
+Shader "Custom/P17/P17"
 {
     Properties
     {
@@ -6,20 +6,15 @@ Shader "Custom/P16/P16_AlphaBlending"
     }
     SubShader
     {
-        // Opaque > Transparent 순으로 그림
-        // Transparent는 뒤에서부터 그려야됨
-
-        // 알파 블렌딩 쉐이더
-        // 그림자 X, 앞뒤판정 불명확, 무거운 연산
         Tags { "RenderType"="Transparent" "Queue"="Transparent" }
-
-        // 알파 소팅은 카메라에서 먼 것부터 그림
-        // 따라서 어색하게 그려지는 경우가 많음
-        cull off
         zwrite off
 
+        // SrcAlpha : SrcAlpha x Source
+        // OneMinuseSrcAlpha : (1 - SrcAlpha) x 배경
+        blend SrcAlpha OneMinusSrcAlpha
+
         CGPROGRAM
-        #pragma surface surf Lambert alpha:fade
+        #pragma surface surf Lambert keepalpha
 
         sampler2D _MainTex;
 
