@@ -1,0 +1,65 @@
+﻿// Multiple Kernel
+#pragma kernel SolidRed
+#pragma kernel SolidYellow
+#pragma kernel SplitScreen
+#pragma kernel Circle
+#pragma kernel Rect
+
+RWTexture2D<float4> Result;
+int texResolution;
+
+[numthreads(8,8,1)]
+void SolidRed(uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(1, 0, 0, 0);
+}
+
+[numthreads(8, 8, 1)]
+void SolidYellow(uint3 id : SV_DispatchThreadID)
+{
+	Result[id.xy] = float4(1, 0, 0, 0);
+}
+
+// ex.
+// GroupID = (20,10,0)
+// ThreadID = (4,5,0)
+// numthreads(8,8,1)
+//
+// then,
+// DispatchThreadID = (20,10,0) * (8,8,1) + (4,5,0)
+//					= (164, 85, 0)
+[numthreads(8, 8, 1)]
+void SplitScreen(uint3 id : SV_DispatchThreadID)
+{
+	int halfRes = texResolution >> 1;
+	Result[id.xy] = float4(step(halfRes, id.x), step(halfRes, id.y), 0.0, 1.0);
+}
+
+float inCircle(float2 pt, float radius)
+{
+	return (length(pt) < radius) ? 1.0f : 0.0f;
+}
+
+//	step(edge, x)
+//	if edge > x		-> return 0
+//  if edge <= x	-> return 1
+[numthreads(8, 8, 1)]
+void Circle(uint3 id : SV_DispatchThreadID)
+{
+	int halfRes = texResolution >> 1;
+	float res = inCircle((float2) ((int2) id.xy - halfRes), (float) (texResolution >> 2));
+	Result[id.xy] = float4(res, res, 0, 1);
+}
+
+[numthreads(8, 8, 1)]
+void Rect(uint3 id : SV_DispatchThreadID)
+{
+	int halfRes = texResolution >> 1;
+	int quatRes = texResolution >> 2;
+	
+	float2 res1 = step(quatRes, id.xy);
+	float2 res2 = step(id.xy, halfRes + quatRes);
+	
+	float2 res = res1 * res2;
+	Result[id.xy] = float4(0, 0, res.x * res.y, 0);
+}

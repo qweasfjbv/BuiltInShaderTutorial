@@ -1,0 +1,18 @@
+﻿//////////////////////////////////////////////////
+//
+//  Kernel은 Dispatch 를 사용하는 Monobehaviour 스크립트에서 호출됨
+//  모든 Kernel은 아래와 같은 pragma 사용
+//
+//////////////////////////////////////////////////
+#pragma kernel CSMain
+
+// ReadWrite
+RWTexture2D<float4> Result;
+
+// 8x8x1=64 개의 쓰레드 사용 (1 Thread Group)
+// groupID: (0, 0, 0)
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    Result[id.xy] = float4(1, 0, 0, 0);
+}

@@ -1,0 +1,81 @@
+﻿#pragma kernel Circles
+#pragma kernel Clear
+
+shared RWTexture2D<float4> Result;
+
+int texResolution;
+float4 clearColor;
+float4 circleColor;
+float time;
+
+struct circle
+{
+	float2 origin;
+	float2 velocity;
+	float radius;
+};
+
+StructuredBuffer<circle> circlesBuffer;
+
+void plot1(int x, int y, int2 centre)
+{
+	Result[uint2(centre.x + x, centre.y + y)] = circleColor;
+}
+
+void plot8(int x, int y, int2 centre)
+{
+	plot1(x, y, centre);
+	plot1(y, x, centre);
+	plot1(x, -y, centre);
+	plot1(y, -x, centre);
+	plot1(-x, -y, centre);
+	plot1(-y, -x, centre);
+	plot1(-x, y, centre);
+	plot1(-y, x, centre);
+}
+
+// Bresenham line algorithm을 통한 원 그리기
+void drawCircle(int2 centre, int radius)
+{
+	int x = 0;
+	int y = radius;
+	int d = 1 - radius;
+
+	while (x < y)
+	{
+		if (d < 0)
+		{
+			d += 2 * x + 3;
+		}
+		else
+		{
+			d += 2 * (x - y) + 5;
+			y--;
+		}
+		
+		plot8(x, y, centre);
+
+		x++;
+	}
+}
+
+// id.x를 버퍼 인덱스로 사용할 수 있음 (0~319)
+[numthreads(32, 1, 1)]
+void Circles(uint3 id : SV_DispatchThreadID)
+{
+	int2 centre = (int2) (circlesBuffer[id.x].origin + circlesBuffer[id.x].velocity * time);
+	int radius = (int)circlesBuffer[id.x].radius;
+	
+	while (centre.x > texResolution) centre.x -= texResolution;
+	while (centre.x < 0) centre.x += texResolution;
+	while (centre.y > texResolution) centre.y -= texResolution;
+	while (centre.y < 0) centre.y += texResolution;
+	
+	drawCircle(centre, radius);
+}
+
+[numthreads(8, 8, 1)]
+void Clear(uint3 id : SV_DispatchThreadID)
+{
+	Result[id.xy] = clearColor;
+}
